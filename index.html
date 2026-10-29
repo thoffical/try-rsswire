@@ -4,46 +4,411 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#101114">
   <title>🛜 RSSWire Playground</title>
+
   <style>
-    * {
-      box-sizing: border-box;
+    :root {
+      color-scheme: dark;
+      --bg: #101114;
+      --panel: #18191e;
+      --border: #2a2c33;
+      --text: #f5f5f7;
+      --muted: #999ba6;
+      --accent: #a8e66b;
     }
+
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
       width: 100%;
       height: 100%;
-      font-family: system-ui, sans-serif;
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
     }
 
     body {
       display: flex;
       flex-direction: column;
+      overflow: hidden;
     }
 
     header {
-      padding: 12px 16px;
-      background: #111;
-      color: white;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 22px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(24, 25, 30, .96);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      flex-shrink: 0;
+      border: 1px solid #414832;
+      border-radius: 13px;
+      background: #252c1d;
+      font-size: 22px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: -.3px;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    button, .button {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 13px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #222329;
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
       font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+
+    button:hover, .button:hover {
+      background: #303139;
+      border-color: #50525c;
+    }
+
+    .primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #17200f;
+    }
+
+    .primary:hover {
+      background: #baf185;
+      border-color: #baf185;
+    }
+
+    main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .workspace-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .workspace-heading h2 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 650;
+    }
+
+    .workspace-heading p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d6ad53;
+      box-shadow: 0 0 10px #d6ad5340;
+    }
+
+    .workspace {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: #fff;
     }
 
     iframe {
-      flex: 1;
+      display: block;
       width: 100%;
+      height: 100%;
       border: 0;
+      background: #fff;
+    }
+
+    .loading {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 24px;
+      background: var(--panel);
+      text-align: center;
+      transition: opacity .25s;
+    }
+
+    .loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .loader {
+      width: 28px;
+      height: 28px;
+      border: 3px solid #41434b;
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    .loading strong { font-size: 15px; }
+
+    .loading p {
+      max-width: 360px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .loading .button { margin-top: 4px; }
+
+    footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 20px 14px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    footer a {
+      color: #c3e99a;
+      text-decoration: none;
+    }
+
+    footer a:hover { text-decoration: underline; }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 11px 13px; }
+      .brand p { max-width: 155px; }
+      .brand-icon { width: 37px; height: 37px; }
+      .actions { gap: 6px; }
+      .actions button, .actions .button {
+        padding: 0 9px;
+        font-size: 12px;
+      }
+      .hide-mobile { display: none; }
+      main { padding: 10px; gap: 10px; }
+      .workspace-heading { align-items: flex-start; }
+      footer { padding: 0 12px 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
     }
   </style>
 </head>
-<body>
-  <header>RSSWire Playground</header>
 
-  <iframe
-    src="https://playground.wordpress.net/?blueprint-url=https%3A%2F%2Fraw.githubusercontent.com%2Fthoffical%2Ftry-rsswire%2Frefs%2Fheads%2Fmain%2Fblueprint.json"
-    title="WordPress Playground with RSSWire"
-    allow="clipboard-read; clipboard-write"
-    loading="eager">
-  </iframe>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-icon" aria-hidden="true">🛜</div>
+      <div>
+        <h1>RSSWire Playground</h1>
+        <p>WordPress in your browser</p>
+      </div>
+    </div>
+
+    <nav class="actions" aria-label="Playground actions">
+      <button id="reload" type="button" title="Reload the embedded Playground">
+        ↻ <span class="hide-mobile">Reload</span>
+      </button>
+      <a
+        class="button primary"
+        href="https://playground.wordpress.net/?blueprint-url=https%3A%2F%2Fraw.githubusercontent.com%2Fthoffical%2Ftry-rsswire%2Frefs%2Fheads%2Fmain%2Fblueprint.json"
+        target="_blank"
+        rel="noopener noreferrer">
+        Open separately ↗
+      </a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="workspace-heading">
+      <div>
+        <h2>Workspace</h2>
+        <p>RSSWire is configured through your GitHub Blueprint.</p>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite">
+        <span class="status-dot"></span>
+        <span id="status-text">Starting Playground…</span>
+      </div>
+    </div>
+
+    <section class="workspace" aria-label="WordPress Playground">
+      <div class="loading" id="loading">
+        <div class="loader" aria-hidden="true"></div>
+        <strong id="loading-title">Starting WordPress Playground</strong>
+        <p id="loading-message">
+          WordPress is loading inside the embedded workspace.
+          First startup can take a little while.
+        </p>
+        <a
+          class="button primary"
+          href="https://playground.wordpress.net/?blueprint-url=https%3A%2F%2Fraw.githubusercontent.com%2Fthoffical%2Ftry-rsswire%2Frefs%2Fheads%2Fmain%2Fblueprint.json"
+          target="_blank"
+          rel="noopener noreferrer">
+          Having trouble? Open Playground ↗
+        </a>
+      </div>
+
+      <iframe
+        id="playground"
+        src="https://playground.wordpress.net/?blueprint-url=https%3A%2F%2Fraw.githubusercontent.com%2Fthoffical%2Ftry-rsswire%2Frefs%2Fheads%2Fmain%2Fblueprint.json"
+        title="WordPress Playground with RSSWire"
+        allow="clipboard-read; clipboard-write"
+        loading="eager"
+        referrerpolicy="strict-origin-when-cross-origin">
+      </iframe>
+    </section>
+  </main>
+
+  <footer>
+    <span>Powered by WordPress Playground</span>
+    <span>
+      <a href="https://wordpress.org/plugins/rsswire/"
+         target="_blank" rel="noopener noreferrer">RSSWire on WordPress.org</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/thoffical/try-rsswire"
+         target="_blank" rel="noopener noreferrer">Source</a>
+    </span>
+  </footer>
+
+  <script>
+    const frame = document.getElementById("playground");
+    const loading = document.getElementById("loading");
+    const loadingTitle = document.getElementById("loading-title");
+    const loadingMessage = document.getElementById("loading-message");
+    const statusText = document.getElementById("status-text");
+    const statusDot = document.querySelector(".status-dot");
+
+    let loaded = false;
+    let warningTimer;
+
+    function showFallback() {
+      if (loaded) return;
+
+      loadingTitle.textContent = "Still waiting for WordPress";
+      loadingMessage.textContent =
+        "The embedded Playground has not confirmed that the site is ready. " +
+        "It may still be starting, or embedding may be unsupported in this browser. " +
+        "Open it separately to use the full Playground.";
+      statusText.textContent = "Taking longer than expected";
+      statusDot.style.background = "#d6ad53";
+    }
+
+    frame.addEventListener("load", () => {
+      loaded = true;
+      clearTimeout(warningTimer);
+
+      // The iframe load event does NOT prove WordPress finished rendering.
+      // Keep the overlay until the user dismisses it or opens the site separately.
+      loadingTitle.textContent = "Playground page loaded";
+      loadingMessage.textContent =
+        "The embedded page responded, but this does not guarantee WordPress " +
+        "finished starting. If the workspace is blank, open Playground separately.";
+      statusText.textContent = "Frame loaded";
+      statusDot.style.background = "#a8e66b";
+
+      const dismiss = document.createElement("button");
+      dismiss.type = "button";
+      dismiss.className = "primary";
+      dismiss.textContent = "Show workspace";
+      dismiss.addEventListener("click", () => {
+        loading.classList.add("hidden");
+      });
+
+      const existing = loading.querySelector("button");
+      if (existing) existing.remove();
+      loading.appendChild(dismiss);
+      loading.querySelector(".loader").style.display = "none";
+    });
+
+    warningTimer = setTimeout(showFallback, 12000);
+
+    document.getElementById("reload").addEventListener("click", () => {
+      loaded = false;
+      loading.classList.remove("hidden");
+      loadingTitle.textContent = "Reloading Playground";
+      loadingMessage.textContent = "Requesting a fresh embedded session…";
+      statusText.textContent = "Reloading…";
+      statusDot.style.background = "#d6ad53";
+      const oldButton = loading.querySelector("button");
+      if (oldButton) oldButton.remove();
+      loading.querySelector(".loader").style.display = "";
+      clearTimeout(warningTimer);
+      warningTimer = setTimeout(showFallback, 12000);
+      frame.src = frame.src;
+    });
+  </script>
 </body>
 </html>
